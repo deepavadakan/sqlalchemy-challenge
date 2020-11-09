@@ -140,7 +140,7 @@ def temp_stats_from_date(start):
     try:
         dt.datetime.strptime(start, "%Y-%m-%d")
     except ValueError:
-        return jsonify("This is the incorrect date string format. It should be YYYY-MM-DD"), 404
+        return jsonify("Incorrect format. Please enter the date as YYYY-MM-DD"), 404
 
     # Create our session (link) from Python to the DB
     session = Session(engine)
@@ -160,7 +160,7 @@ def temp_stats_from_date(start):
         filter(Measurement.station == Station.station).\
         filter(Measurement.date >= start).\
         group_by(Measurement.station).all()
-        
+
     session.close()
     
     # Create a dictionary from the row data and append to a list of station_stats
@@ -190,7 +190,7 @@ def temp_stats_date_range(start, end):
         dt.datetime.strptime(start, "%Y-%m-%d")
         dt.datetime.strptime(end, "%Y-%m-%d")
     except ValueError:
-        return jsonify("This is the incorrect date string format. It should be YYYY-MM-DD"), 404
+        return jsonify("Incorrect format. Please enter the date as YYYY-MM-DD"), 404
 
     # Create our session (link) from Python to the DB
     session = Session(engine)
