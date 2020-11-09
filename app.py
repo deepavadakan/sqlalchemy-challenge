@@ -11,14 +11,12 @@ from flask import Flask, jsonify
 #################################################
 # Database Setup
 #################################################
-engine = create_engine("sqlite:///hawaii.sqlite")
+engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 
 # reflect an existing database into a new model
 Base = automap_base()
 # reflect the tables
 Base.prepare(engine, reflect=True)
-
-print(Base.classes.keys())
 
 # Save reference to the table
 Measurement = Base.classes.measurement
@@ -42,8 +40,8 @@ def welcome():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/<start><br/>"
-        f"/api/v1.0/<start>/<end>"
+        f"/api/v1.0/start_date<br/>"
+        f"/api/v1.0/start_date/end_date"
     )
 
 
@@ -101,7 +99,7 @@ def tobs():
 
     """Return a list of dates and temperature observations of the most active station for the latest year of data"""
     # List the stations and the counts in descending order.
-    active_station = session.query(Station.name, Station.id, func.count(Measurement.station)).\
+    active_station = session.query(Station.name, Station.station, func.count(Measurement.station)).\
         filter(Measurement.station == Station.station).\
         group_by(Measurement.station).\
         order_by(func.count(Measurement.station).desc()).all()
@@ -109,12 +107,13 @@ def tobs():
     # Find most active station
     (station_name, station_id, station_count) = active_station[0]
 
-    # Find the last date recorded
+   # Find the last date recorded
     station_last_date_row = session.query(Measurement.date).\
         filter(Measurement.station == station_id).\
         order_by(Measurement.date.desc()).first()
-    station_last_date = dt.datetime.strptime(last_date_row.date, '%Y-%m-%d')
-
+   
+    station_last_date = dt.datetime.strptime(station_last_date_row.date, '%Y-%m-%d')
+    
     # Calculate the date 1 year ago from the last data point in the database
     station_yearago_date = station_last_date - dt.timedelta(days=365)
 
@@ -140,10 +139,7 @@ def temp_stats_from_date(start):
     # Check if date is in the correct format
     try:
         dt.datetime.strptime(start, "%Y-%m-%d")
-        dt.datetime.strptime(end, "%Y-%m-%d")
-        print("This is the correct date string format.")
     except ValueError:
-        print("This is the incorrect date string format. It should be YYYY-MM-DD")
         return jsonify("This is the incorrect date string format. It should be YYYY-MM-DD"), 404
 
     # Create our session (link) from Python to the DB
@@ -152,19 +148,19 @@ def temp_stats_from_date(start):
     """Return a list of stations and their max, min and average temperature from the given date"""
 
     # Perform a query to retrieve station name, max, min and avg temperature from given date 
-    results2 = session.query(Station.name, 
-                              func.max(Measurement.tobs), 
+    
+    results = session.query(func.max(Measurement.tobs), 
+                            func.min(Measurement.tobs), 
+                            func.avg(Measurement.tobs)).\
+        filter(Measurement.date >= start).first()
+    
+    results2 = session.query(func.max(Measurement.tobs), 
                               func.min(Measurement.tobs), 
                               func.avg(Measurement.tobs)).\
         filter(Measurement.station == Station.station).\
         filter(Measurement.date >= start).\
         group_by(Measurement.station).all()
-
-    results = session.query(func.max(Measurement.tobs), 
-                            func.min(Measurement.tobs), 
-                            func.avg(Measurement.tobs)).\
-        filter(Measurement.date >= start).first()
-
+        
     session.close()
     
     # Create a dictionary from the row data and append to a list of station_stats
@@ -181,8 +177,8 @@ def temp_stats_from_date(start):
         station_stats_dict2 = {}
         station_stats_dict2["max_temp"] = max_temp
         station_stats_dict2["min_temp"] = min_temp
-        station_stats_dic2t["avg_temp"] = round(avg_temp, 2)
-        station_stats.append(station_stats_dict2)
+        station_stats_dict2["avg_temp"] = round(avg_temp, 2)
+        station_stats2.append(station_stats_dict2)
 
     return jsonify(station_stats)
 
@@ -193,9 +189,7 @@ def temp_stats_date_range(start, end):
     try:
         dt.datetime.strptime(start, "%Y-%m-%d")
         dt.datetime.strptime(end, "%Y-%m-%d")
-        print("This is the correct date string format.")
     except ValueError:
-        print("This is the incorrect date string format. It should be YYYY-MM-DD")
         return jsonify("This is the incorrect date string format. It should be YYYY-MM-DD"), 404
 
     # Create our session (link) from Python to the DB
@@ -204,21 +198,20 @@ def temp_stats_date_range(start, end):
     """Return a list of stations and their max, min and average temperature for the given date range"""
 
     # Perform a query to retrieve station name, max, min and avg temperature ffor the given date range 
-    results2 = session.query(Station.name, 
-                              func.max(Measurement.tobs), 
+    
+    results = session.query(func.max(Measurement.tobs), 
+                            func.min(Measurement.tobs), 
+                            func.avg(Measurement.tobs)).\
+        filter(Measurement.date >= "2012-01-11").\
+        filter(Measurement.date <= "2012-12-11").first()
+    
+    results2 = session.query(func.max(Measurement.tobs), 
                               func.min(Measurement.tobs), 
                               func.avg(Measurement.tobs)).\
         filter(Measurement.station == Station.station).\
         filter(Measurement.date >= start).\
         filter(Measurement.date <= end).\
         group_by(Measurement.station).all()
-
-    results = session.query(func.max(Measurement.tobs), 
-                            func.min(Measurement.tobs), 
-                            func.avg(Measurement.tobs)).\
-        filter(Measurement.date >= "2012-01-11").\
-        filter(Measurement.date <= "2012-12-11").first()
-
     session.close()
 
     # Create a dictionary from the row data and append to a list of station_stats
