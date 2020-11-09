@@ -137,7 +137,15 @@ def tobs():
 @app.route("/api/v1.0/<start>")
 def temp_stats_from_date(start):
 
-    #if (start
+    # Check if date is in the correct format
+    try:
+        dt.datetime.strptime(start, "%Y-%m-%d")
+        dt.datetime.strptime(end, "%Y-%m-%d")
+        print("This is the correct date string format.")
+    except ValueError:
+        print("This is the incorrect date string format. It should be YYYY-MM-DD")
+        return jsonify("This is the incorrect date string format. It should be YYYY-MM-DD"), 404
+
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
@@ -181,7 +189,15 @@ def temp_stats_from_date(start):
 @app.route("/api/v1.0/<start>/<end>")
 def temp_stats_date_range(start, end):
 
-    #if (start
+    # Check if date is in the correct format
+    try:
+        dt.datetime.strptime(start, "%Y-%m-%d")
+        dt.datetime.strptime(end, "%Y-%m-%d")
+        print("This is the correct date string format.")
+    except ValueError:
+        print("This is the incorrect date string format. It should be YYYY-MM-DD")
+        return jsonify("This is the incorrect date string format. It should be YYYY-MM-DD"), 404
+
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
