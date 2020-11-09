@@ -3,6 +3,7 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
 import datetime as dt
+import numpy as np
 
 from flask import Flask, jsonify
 
@@ -143,25 +144,37 @@ def temp_stats_from_date(start):
     """Return a list of stations and their max, min and average temperature from the given date"""
 
     # Perform a query to retrieve station name, max, min and avg temperature from given date 
-    station_stats = session.query(Station.name, 
+    results2 = session.query(Station.name, 
                               func.max(Measurement.tobs), 
                               func.min(Measurement.tobs), 
                               func.avg(Measurement.tobs)).\
         filter(Measurement.station == Station.station).\
         filter(Measurement.date >= start).\
-        group_by(Measurement.station).\
-            all()
+        group_by(Measurement.station).all()
+
+    results = session.query(func.max(Measurement.tobs), 
+                            func.min(Measurement.tobs), 
+                            func.avg(Measurement.tobs)).\
+        filter(Measurement.date >= start).first()
 
     session.close()
-
+    
     # Create a dictionary from the row data and append to a list of station_stats
+    (max_temp, min_temp, avg_temp) = results
     station_stats = []
-    for name, max_temp, min_temp, avg_temp in results:
-        station_stats_dict = {}
-        station_stats_dict["max_temp"] = max_temp
-        station_stats_dict["min_temp"] = min_temp
-        station_stats_dict["avg_temp"] = avg_temp
-        station_stats.append(station_stats_dict)
+    station_stats_dict = {}
+    station_stats_dict["max_temp"] = max_temp
+    station_stats_dict["min_temp"] = min_temp
+    station_stats_dict["avg_temp"] = round(avg_temp, 2)
+    station_stats.append(station_stats_dict)
+
+    station_stats2 = []
+    for name, max_temp, min_temp, avg_temp in results2:
+        station_stats_dict2 = {}
+        station_stats_dict2["max_temp"] = max_temp
+        station_stats_dict2["min_temp"] = min_temp
+        station_stats_dic2t["avg_temp"] = round(avg_temp, 2)
+        station_stats.append(station_stats_dict2)
 
     return jsonify(station_stats)
 
@@ -175,25 +188,39 @@ def temp_stats_date_range(start, end):
     """Return a list of stations and their max, min and average temperature for the given date range"""
 
     # Perform a query to retrieve station name, max, min and avg temperature ffor the given date range 
-    station_stats = session.query(Station.name, 
+    results2 = session.query(Station.name, 
                               func.max(Measurement.tobs), 
                               func.min(Measurement.tobs), 
                               func.avg(Measurement.tobs)).\
         filter(Measurement.station == Station.station).\
         filter(Measurement.date >= start).\
-        group_by(Measurement.station).\
-            all()
+        filter(Measurement.date <= end).\
+        group_by(Measurement.station).all()
+
+    results = session.query(func.max(Measurement.tobs), 
+                            func.min(Measurement.tobs), 
+                            func.avg(Measurement.tobs)).\
+        filter(Measurement.date >= "2012-01-11").\
+        filter(Measurement.date <= "2012-12-11").first()
 
     session.close()
 
     # Create a dictionary from the row data and append to a list of station_stats
+    (max_temp, min_temp, avg_temp) = results
     station_stats = []
-    for name, max_temp, min_temp, avg_temp in results:
-        station_stats_dict = {}
-        station_stats_dict["max_temp"] = max_temp
-        station_stats_dict["min_temp"] = min_temp
-        station_stats_dict["avg_temp"] = avg_temp
-        station_stats.append(station_stats_dict)
+    station_stats_dict = {}
+    station_stats_dict["max_temp"] = max_temp
+    station_stats_dict["min_temp"] = min_temp
+    station_stats_dict["avg_temp"] = round(avg_temp, 2)
+    station_stats.append(station_stats_dict)
+    
+    station_stats2 = []
+    for name, max_temp, min_temp, avg_temp in results2:
+        station_stats_dict2 = {}
+        station_stats_dict2["max_temp"] = max_temp
+        station_stats_dict2["min_temp"] = min_temp
+        station_stats_dict2["avg_temp"] = round(avg_temp, 2)
+        station_stats2.append(station_stats_dict2)
 
     return jsonify(station_stats)
 
