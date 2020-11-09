@@ -4,17 +4,18 @@
 
 
 ## Table of contents
-* [General info](#General-info)
-* [Data Engineering](#Data-Engineering)
-* [Data Analysis](#Data-Analysis)
-* [Bonus](#Bonus)
-* [Observations](#Observations)
+* [Climate Analysis and Exploration](#Climate-Analysis-and-Exploration)
+* [Precipitation Analysis](#Precipitation-Analysis)
+* [Station Analysis](#Station-Analysis)
+* [Temperature Analysis I](#Temperature-Analysis-I)
+    * [Observations](#Observations)
+* [Temperature Analysis II](#Temperature-Analysis-II)
+* [Daily Temperature Average](#Daily-Temperature-Average)
 * [Contact](#Contact)
 
-## General info
-Basic climate analysis and data exploration of a climate database.
 
 ## Climate Analysis and Exploration
+Basic climate analysis and data exploration of a climate database.
 
 ### Precipitation Analysis
 
