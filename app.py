@@ -154,7 +154,8 @@ def temp_stats_from_date(start):
                             func.avg(Measurement.tobs)).\
         filter(Measurement.date >= start).first()
     
-    results2 = session.query(func.max(Measurement.tobs), 
+    results2 = session.query(func.max(Station.name),
+                              func.max(Measurement.tobs), 
                               func.min(Measurement.tobs), 
                               func.avg(Measurement.tobs)).\
         filter(Measurement.station == Station.station).\
@@ -205,7 +206,8 @@ def temp_stats_date_range(start, end):
         filter(Measurement.date >= "2012-01-11").\
         filter(Measurement.date <= "2012-12-11").first()
     
-    results2 = session.query(func.max(Measurement.tobs), 
+    results2 = session.query(func.max(Station.name),
+                              func.max(Measurement.tobs), 
                               func.min(Measurement.tobs), 
                               func.avg(Measurement.tobs)).\
         filter(Measurement.station == Station.station).\
