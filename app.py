@@ -36,12 +36,12 @@ app = Flask(__name__)
 def welcome():
     """List all available api routes."""
     return (
-        f"Available Routes:<br/>"
-        f"/api/v1.0/precipitation<br/>"
-        f"/api/v1.0/stations<br/>"
-        f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/start_date<br/>"
-        f"/api/v1.0/start_date/end_date"
+        f"<h2>Available Routes:</h2>"
+        f"Dates and precipitation for the latest year of data: <b>/api/v1.0/precipitation</b><br/>"
+        f"List of Stations: <b>/api/v1.0/stations</b><br/>"
+        f"Dates and temperature observations of the most active station for the latest year of data: <b>/api/v1.0/tobs</b><br/>"
+        f"Temperature normals from the given date: <b>/api/v1.0/yyyy-mm-dd</b><br/>"
+        f"Temperature normals for the given date range: <b>/api/v1.0/yyyy-mm-dd/yyyy-mm-dd<b>"
     )
 
 
@@ -71,7 +71,6 @@ def precipitation():
     for date, prcp in results:
         prcp_dict = {}
         prcp_dict[date] = prcp
-        #prcp_dict["prcp"] = prcp
         prcp_12months.append(prcp_dict)
 
     return jsonify(prcp_12months)
@@ -99,13 +98,13 @@ def tobs():
 
     """Return a list of dates and temperature observations of the most active station for the latest year of data"""
     # List the stations and the counts in descending order.
-    active_station = session.query(Station.name, Station.station, func.count(Measurement.station)).\
+    active_station = session.query(Station.station).\
         filter(Measurement.station == Station.station).\
         group_by(Measurement.station).\
-        order_by(func.count(Measurement.station).desc()).all()
+        order_by(func.count(Measurement.station).desc()).first()
 
     # Find most active station
-    (station_name, station_id, station_count) = active_station[0]
+    station_id = active_station[0]
 
    # Find the last date recorded
     station_last_date_row = session.query(Measurement.date).\
@@ -145,7 +144,7 @@ def temp_stats_from_date(start):
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
-    """Return a list of stations and their max, min and average temperature from the given date"""
+    """Return a list of max, min and average temperature from the given date"""
 
     # Perform a query to retrieve station name, max, min and avg temperature from given date 
     
@@ -154,14 +153,6 @@ def temp_stats_from_date(start):
                             func.avg(Measurement.tobs)).\
         filter(Measurement.date >= start).first()
     
-    results2 = session.query(func.max(Station.name),
-                              func.max(Measurement.tobs), 
-                              func.min(Measurement.tobs), 
-                              func.avg(Measurement.tobs)).\
-        filter(Measurement.station == Station.station).\
-        filter(Measurement.date >= start).\
-        group_by(Measurement.station).all()
-
     session.close()
     
     # Create a dictionary from the row data and append to a list of station_stats
@@ -172,14 +163,6 @@ def temp_stats_from_date(start):
     station_stats_dict["min_temp"] = min_temp
     station_stats_dict["avg_temp"] = round(avg_temp, 2)
     station_stats.append(station_stats_dict)
-
-    station_stats2 = []
-    for name, max_temp, min_temp, avg_temp in results2:
-        station_stats_dict2 = {}
-        station_stats_dict2["max_temp"] = max_temp
-        station_stats_dict2["min_temp"] = min_temp
-        station_stats_dict2["avg_temp"] = round(avg_temp, 2)
-        station_stats2.append(station_stats_dict2)
 
     return jsonify(station_stats)
 
@@ -196,7 +179,7 @@ def temp_stats_date_range(start, end):
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
-    """Return a list of stations and their max, min and average temperature for the given date range"""
+    """Return a list max, min and average temperature for the given date range"""
 
     # Perform a query to retrieve station name, max, min and avg temperature ffor the given date range 
     
@@ -206,14 +189,6 @@ def temp_stats_date_range(start, end):
         filter(Measurement.date >= "2012-01-11").\
         filter(Measurement.date <= "2012-12-11").first()
     
-    results2 = session.query(func.max(Station.name),
-                              func.max(Measurement.tobs), 
-                              func.min(Measurement.tobs), 
-                              func.avg(Measurement.tobs)).\
-        filter(Measurement.station == Station.station).\
-        filter(Measurement.date >= start).\
-        filter(Measurement.date <= end).\
-        group_by(Measurement.station).all()
     session.close()
 
     # Create a dictionary from the row data and append to a list of station_stats
@@ -225,14 +200,6 @@ def temp_stats_date_range(start, end):
     station_stats_dict["avg_temp"] = round(avg_temp, 2)
     station_stats.append(station_stats_dict)
     
-    station_stats2 = []
-    for name, max_temp, min_temp, avg_temp in results2:
-        station_stats_dict2 = {}
-        station_stats_dict2["max_temp"] = max_temp
-        station_stats_dict2["min_temp"] = min_temp
-        station_stats_dict2["avg_temp"] = round(avg_temp, 2)
-        station_stats2.append(station_stats_dict2)
-
     return jsonify(station_stats)
 
 if __name__ == '__main__':
